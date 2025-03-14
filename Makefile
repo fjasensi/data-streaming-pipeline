@@ -61,6 +61,9 @@ producer:
 		echo "${YELLOW}Virtual environment not found. Run 'make setup' first${NC}"; \
 		exit 1; \
 	fi
+	KAFKA_BOOTSTRAP_SERVERS=localhost:29092 \
+	KAFKA_TOPIC=events-raw \
+	INTERVAL_SECONDS=1 \
 	$(VENV_DIR)/bin/python apps/data-producer/src/producer.py
 
 # Run the Spark processor
