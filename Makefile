@@ -73,6 +73,10 @@ spark:
 		echo "${YELLOW}Virtual environment not found. Run 'make setup' first${NC}"; \
 		exit 1; \
 	fi
+	KAFKA_BOOTSTRAP_SERVERS=localhost:29092 \
+	KAFKA_TOPIC_INPUT=events-raw \
+	KAFKA_TOPIC_OUTPUT=events-aggregated \
+	CHECKPOINT_LOCATION=/tmp/checkpoint \
 	$(VENV_DIR)/bin/python apps/spark-processor/src/processor.py
 
 # Clean environment
