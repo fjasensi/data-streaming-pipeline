@@ -6,3 +6,6 @@ Kafka UI:
 ```
 http://localhost:8080
 ```
+
+## TODO's
+- Grafana + prometheus (dashboards and alerts)
