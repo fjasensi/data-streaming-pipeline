@@ -1,12 +1,12 @@
 import os
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col, window, sum, avg, count, lit
+from pyspark.sql.functions import from_json, col, window, sum, avg, count
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType, IntegerType, TimestampType
 
 
 KAFKA_BOOTSTRAP_SERVERS = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
 KAFKA_TOPIC_INPUT = os.environ.get('KAFKA_TOPIC_INPUT', 'events-raw')
-KAFKA_TOPIC_OUTPUT = os.environ.get('KAFKA_TOPIC_OUTPUT', 'events-aggregated') 
+KAFKA_TOPIC_OUTPUT = os.environ.get('KAFKA_TOPIC_OUTPUT', 'events-aggregated')
 INTERVAL_SECONDS = int(os.environ.get('INTERVAL_SECONDS', '1'))
 CHECKPOINT_LOCATION = os.environ.get('CHECKPOINT_LOCATION', '/tmp/checkpoint')
 
@@ -82,7 +82,7 @@ def process_batch(batch_df, batch_id):
 
 def write_kafka(df):
     print(f"Writing results to Kafka: {KAFKA_BOOTSTRAP_SERVERS} - Topic: {KAFKA_TOPIC_OUTPUT}")
-    
+
     result_df = df.selectExpr(
             "CAST(window.start AS STRING) AS window_start",
             "CAST(window.end AS STRING) AS window_end",
@@ -104,5 +104,3 @@ def write_kafka(df):
 
 if __name__ == "__main__":
     process_stream()
-    
-    
