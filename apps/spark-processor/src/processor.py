@@ -25,7 +25,7 @@ schema = StructType([
     StructField('quantity', IntegerType(), True),
     StructField('country', StringType(), True),
     StructField('transaction_id', StringType(), True),
-    ])
+])
 
 
 def process_stream():
