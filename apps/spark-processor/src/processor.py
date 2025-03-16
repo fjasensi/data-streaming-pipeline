@@ -11,12 +11,11 @@ INTERVAL_SECONDS = int(os.environ.get('INTERVAL_SECONDS', '1'))
 CHECKPOINT_LOCATION = os.environ.get('CHECKPOINT_LOCATION', '/tmp/checkpoint')
 
 
-spark = SparkSession \
-        .builder \
-        .appName('KafkaStreamProcessor') \
-        .config('spark.jars.packages', 'org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0') \
-        .config('spark.sql.streaming.checkpointLocation', CHECKPOINT_LOCATION) \
-        .getOrCreate()
+spark = (SparkSession.builder
+        .appName('KafkaStreamProcessor') # type: ignore
+        .config('spark.jars.packages', 'org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0')
+        .config('spark.sql.streaming.checkpointLocation', CHECKPOINT_LOCATION)
+        .getOrCreate())
 
 schema = StructType([
     StructField('timestamp', StringType(), True),
