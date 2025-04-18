@@ -20,6 +20,7 @@ help:
 	@echo "  ${GREEN}make kafka-stop${NC} - Stop Kafka and Zookeeper containers"
 	@echo "  ${GREEN}make producer${NC}   - Run the data producer"
 	@echo "  ${GREEN}make spark${NC}      - Run the Spark processor"
+	@echo "  ${GREEN}make consumer${NC}   - Run kafka consumer (events-aggregated)"
 	@echo "  ${GREEN}make clean${NC}      - Remove virtual environment and temporary files"
 
 # Complete setup: virtual environment + dependencies
@@ -78,6 +79,17 @@ spark:
 	KAFKA_TOPIC_OUTPUT=events-aggregated \
 	CHECKPOINT_LOCATION=/tmp/checkpoint \
 	$(VENV_DIR)/bin/python apps/spark-processor/src/processor.py
+
+# Run the consumer, read spark processed data from events-aggregated topic
+consumer:
+	@echo "${BLUE}Starting the kafka consumer...${NC}"
+	@if [ ! -d "$(VENV_DIR)" ]; then \
+		echo "${YELLOW}Virtual environment not found. Run 'make setup' first${NC}"; \
+		exit 1; \
+	fi
+	KAFKA_BOOTSTRAP_SERVERS=localhost:29092 \
+	KAFKA_TOPIC=events-aggregated \
+	$(VENV_DIR)/bin/python apps/data-consumer/src/consumer.py
 
 # Clean environment
 clean:
