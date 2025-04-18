@@ -1,9 +1,9 @@
-.PHONY: setup venv clean kafka kafka-stop producer spark help
+.PHONY: setup venv clean kafka kafka-stop producer spark consumer docker-build docker-up docker-down docker-logs help
 
 # Directory and environment definitions
 VENV_DIR := venv
 PYTHON := python3
-APP_DIRS := apps/data-producer apps/spark-processor
+APP_DIRS := apps/data-producer apps/spark-processor apps/data-consumer
 
 # Colors for messages
 BLUE := \033[0;34m
@@ -14,14 +14,21 @@ NC := \033[0m # No Color
 # Help
 help:
 	@echo "${BLUE}Available commands:${NC}"
-	@echo "  ${GREEN}make setup${NC}      - Set up virtual environment and install all dependencies"
-	@echo "  ${GREEN}make venv${NC}       - Create only the virtual environment without installing dependencies"
-	@echo "  ${GREEN}make kafka${NC}      - Start Kafka and Zookeeper with Docker Compose"
-	@echo "  ${GREEN}make kafka-stop${NC} - Stop Kafka and Zookeeper containers"
-	@echo "  ${GREEN}make producer${NC}   - Run the data producer"
-	@echo "  ${GREEN}make spark${NC}      - Run the Spark processor"
-	@echo "  ${GREEN}make consumer${NC}   - Run kafka consumer (events-aggregated)"
-	@echo "  ${GREEN}make clean${NC}      - Remove virtual environment and temporary files"
+	@echo "  ${BLUE}Development Environment:${NC}"
+	@echo "  ${GREEN}make setup${NC}        - Set up virtual environment and install all dependencies"
+	@echo "  ${GREEN}make venv${NC}         - Create only the virtual environment without installing dependencies"
+	@echo "  ${GREEN}make kafka${NC}        - Start Kafka and Zookeeper with Docker Compose"
+	@echo "  ${GREEN}make kafka-stop${NC}   - Stop Kafka and Zookeeper containers"
+	@echo "  ${GREEN}make producer${NC}     - Run the data producer locally"
+	@echo "  ${GREEN}make spark${NC}        - Run the Spark processor locally"
+	@echo "  ${GREEN}make consumer${NC}     - Run kafka consumer locally (events-aggregated)"
+	@echo "  ${GREEN}make clean${NC}        - Remove virtual environment and temporary files"
+	@echo ""
+	@echo "  ${BLUE}Docker Commands:${NC}"
+	@echo "  ${GREEN}make docker-build${NC} - Build all Docker images for the project"
+	@echo "  ${GREEN}make docker-up${NC}    - Start all Docker containers"
+	@echo "  ${GREEN}make docker-down${NC}  - Stop all Docker containers"
+	@echo "  ${GREEN}make docker-logs${NC}  - Follow logs from all containers"
 
 # Complete setup: virtual environment + dependencies
 setup: venv
@@ -46,7 +53,7 @@ venv:
 # Start Kafka and Zookeeper
 kafka:
 	@echo "${BLUE}Starting Kafka and Zookeeper...${NC}"
-	docker compose up -d
+	docker compose up -d zookeeper kafka kafka-ui
 	@echo "${GREEN}Services started. Kafka UI available at http://localhost:8080${NC}"
 
 # Stop Kafka and Zookeeper
@@ -90,6 +97,29 @@ consumer:
 	KAFKA_BOOTSTRAP_SERVERS=localhost:29092 \
 	KAFKA_TOPIC=events-aggregated \
 	$(VENV_DIR)/bin/python apps/data-consumer/src/consumer.py
+
+# Build Docker images
+docker-build:
+	@echo "${BLUE}Building Docker images...${NC}"
+	docker compose build
+	@echo "${GREEN}Docker images built successfully${NC}"
+
+# Start all services
+docker-up:
+	@echo "${BLUE}Starting all services...${NC}"
+	docker compose up -d
+	@echo "${GREEN}All services started. Kafka UI available at http://localhost:8080${NC}"
+
+# Stop all services
+docker-down:
+	@echo "${BLUE}Stopping all services...${NC}"
+	docker compose down
+	@echo "${GREEN}All services stopped${NC}"
+
+# Follow logs from all containers
+docker-logs:
+	@echo "${BLUE}Following logs from all containers...${NC}"
+	docker compose logs -f
 
 # Clean environment
 clean:

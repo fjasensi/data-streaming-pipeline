@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   zookeeper:
@@ -38,7 +38,14 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      test:
+        [
+          "CMD",
+          "kafka-topics",
+          "--bootstrap-server",
+          "localhost:9092",
+          "--list",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -55,6 +62,54 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+
+  # Data Producer Service
+  data-producer:
+    build:
+      context: ./apps/data-producer
+      dockerfile: Dockerfile
+    container_name: data-producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC: events-raw
+      INTERVAL_SECONDS: 1
+
+  # Spark Processor Service
+  spark-processor:
+    build:
+      context: ./apps/spark-processor
+      dockerfile: Dockerfile
+    container_name: spark-processor
+    depends_on:
+      kafka:
+        condition: service_healthy
+      data-producer:
+        condition: service_started
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC_INPUT: events-raw
+      KAFKA_TOPIC_OUTPUT: events-aggregated
+      CHECKPOINT_LOCATION: /tmp/checkpoint
+    volumes:
+      - ./data:/data
+
+  # Data Consumer Service
+  data-consumer:
+    build:
+      context: ./apps/data-consumer
+      dockerfile: Dockerfile
+    container_name: data-consumer
+    depends_on:
+      kafka:
+        condition: service_healthy
+      spark-processor:
+        condition: service_started
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC: events-aggregated
 
 volumes:
   zookeeper_data:
